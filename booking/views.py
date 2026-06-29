@@ -17,7 +17,7 @@ from .utils import generate_otp, get_available_slots_for_date, is_slot_available
 
 
 ADMIN_USERNAME = getattr(settings, 'ADMIN_USERNAME', 'srmadmin')
-ADMIN_PASSWORD = getattr(settings, 'ADMIN_PASSWORD', 'change-me')
+ADMIN_PASSWORD = getattr(settings, 'ADMIN_PASSWORD', 'admin@123')
 
 
 def student_booking(request):
