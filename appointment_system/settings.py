@@ -162,3 +162,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "srmadmin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin@123")
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
