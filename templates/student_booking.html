@@ -1,27 +1,180 @@
-{% load static %}
+{% extends 'base.html' %}
 
-<nav class="navbar navbar-expand-lg srm-navbar">
-    <div class="container">
+{% block title %}Student Appointment Scheduling System{% endblock %}
 
-        <a class="navbar-brand d-flex align-items-center" href="{% url 'student_booking' %}">
-            <img src="{% static 'images/srm-logo.png' %}" alt="SRM Logo" width="45" height="45" class="me-2">
-            <span>SRM Institute of Science and Technology</span>
-        </a>
-
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'student_booking' %}">Student Booking</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'admin_login' %}">Admin Login</a>
-                </li>
-            </ul>
+{% block content %}
+<div class="row justify-content-center g-4">
+  <div class="col-12 col-xl-10">
+    <section class="hero-panel p-4 p-lg-5 mb-4 shadow-sm">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+          <p class="eyebrow mb-2">SRM Institute of Science and Technology</p>
+          <h1 class="display-6 fw-semibold mb-3">Student Appointment Scheduling System</h1>
+          <p class="lead text-secondary mb-0">Book a professional appointment with department staff through a secure, verified workflow.</p>
         </div>
+        <div class="col-lg-4">
+          <div class="status-card">
+            <div class="small text-uppercase text-secondary fw-semibold">Status</div>
+            <div class="fs-5 fw-semibold mt-1">{{ student.email_verified|yesno:'Email verified,Verification required' }}</div>
+            <div class="small text-secondary mt-2">
+              {% if email_delivery_ready %}
+                Email delivery: SMTP ready
+              {% else %}
+                Email delivery: console mode, OTP will appear in the terminal
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 
+  <div class="col-12 col-xl-10">
+    <div class="stepper mb-4">
+      <div class="step active">
+        <span>1</span>
+        <div><strong>Student Details</strong><small>Enter and verify student information</small></div>
+      </div>
+      <div class="step {% if student and student.email_verified %}active{% endif %}">
+        <span>2</span>
+        <div><strong>Appointment Details</strong><small>Select time, purpose and notes</small></div>
+      </div>
     </div>
-</nav>
+  </div>
+
+  <div class="col-12 col-xl-10">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <p class="section-label mb-1">Step 1</p>
+                <h2 class="h5 mb-0">Student Details</h2>
+              </div>
+              {% if student and student.email_verified %}
+                <span class="badge text-bg-success">Verified</span>
+              {% else %}
+                <span class="badge text-bg-warning">Pending OTP</span>
+              {% endif %}
+            </div>
+
+            <form method="post" class="vstack gap-3">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="save_student">
+              {% for field in student_form %}
+                <div>
+                  <label class="form-label fw-semibold">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+              <button type="submit" class="btn btn-navy">Save and Send OTP</button>
+            </form>
+
+            <div class="mt-3 p-3 rounded-3 border bg-light small text-secondary">
+              {% if email_delivery_ready %}
+                OTPs are configured to send through SMTP. Make sure Gmail app-password credentials are set in your environment.
+              {% else %}
+                OTPs are currently being written to the terminal because SMTP credentials are not set.
+              {% endif %}
+            </div>
+
+            <hr class="my-4">
+
+            <form method="post" class="vstack gap-3">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="verify_otp">
+              <div>
+                <label class="form-label fw-semibold">Email Verification OTP</label>
+                {{ otp_form.otp }}
+                {% if otp_form.otp.errors %}
+                  <div class="invalid-feedback d-block">{{ otp_form.otp.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <div class="d-flex gap-2 flex-wrap">
+                <button type="submit" class="btn btn-outline-navy">Verify OTP</button>
+                <button type="submit" name="action" value="resend_otp" class="btn btn-light border">Resend OTP</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <p class="section-label mb-1">Step 2</p>
+                <h2 class="h5 mb-0">Appointment Details</h2>
+              </div>
+              <span class="badge text-bg-secondary">Office Hours 9:00 AM - 12:00 PM</span>
+            </div>
+
+            {% if student and student.email_verified %}
+              <form method="post" enctype="multipart/form-data" class="vstack gap-3 appointment-form" data-available-slots="{{ available_slots|safe }}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="book_appointment">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">{{ appointment_form.date.label }}</label>
+                    {{ appointment_form.date }}
+                    {% if appointment_form.date.errors %}
+                      <div class="invalid-feedback d-block">{{ appointment_form.date.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">{{ appointment_form.time.label }}</label>
+                    {{ appointment_form.time }}
+                    {% if appointment_form.time.errors %}
+                      <div class="invalid-feedback d-block">{{ appointment_form.time.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="col-md-7">
+                    <label class="form-label fw-semibold d-flex align-items-center gap-2">
+                      <span class="photo-icon">📷</span>
+                      {{ appointment_form.purpose.label }}
+                    </label>
+                    {{ appointment_form.purpose }}
+                    {% if appointment_form.purpose.errors %}
+                      <div class="invalid-feedback d-block">{{ appointment_form.purpose.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="col-md-5">
+                    <label class="form-label fw-semibold d-flex align-items-center gap-2">
+                      <span class="photo-icon">🖼️</span>
+                      Optional Photo
+                    </label>
+                    {{ appointment_form.appointment_photo }}
+                    {% if appointment_form.appointment_photo.errors %}
+                      <div class="invalid-feedback d-block">{{ appointment_form.appointment_photo.errors|striptags }}</div>
+                    {% endif %}
+                    <div class="form-text">Upload only if needed. JPG, PNG, or WEBP recommended.</div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-semibold">{{ appointment_form.additional_notes.label }}</label>
+                    {{ appointment_form.additional_notes }}
+                    {% if appointment_form.additional_notes.errors %}
+                      <div class="invalid-feedback d-block">{{ appointment_form.additional_notes.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-navy btn-lg">Book Appointment</button>
+              </form>
+            {% else %}
+              <div class="empty-state text-center py-5">
+                <div class="empty-icon mb-3">✓</div>
+                <h3 class="h5">Verify your email first</h3>
+                <p class="text-secondary mb-0">Once the OTP is verified, the appointment section becomes available.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
