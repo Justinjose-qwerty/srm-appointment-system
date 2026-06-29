@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: appointment-system
+    env: python
+    buildCommand: bash build.sh
+    startCommand: gunicorn appointment_system.wsgi:application
+    envVars:
+      - key: DJANGO_DEBUG
+        value: false
+      - key: DJANGO_ALLOWED_HOSTS
+        value: .onrender.com

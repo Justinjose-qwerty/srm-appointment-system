@@ -33,7 +33,7 @@ def _get_list_env(name: str, default: str = '') -> list[str]:
 # https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-change-me')
-DEBUG = _get_bool_env('DJANGO_DEBUG', True)
+DEBUG = _get_bool_env('DJANGO_DEBUG', False)
 ALLOWED_HOSTS = _get_list_env('DJANGO_ALLOWED_HOSTS')
 
 
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -128,6 +129,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 # Use absolute MEDIA_URL as well so uploaded media resolves across routes.
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
