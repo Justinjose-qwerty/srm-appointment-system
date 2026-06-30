@@ -7,10 +7,10 @@ from .constants import DEPARTMENT_CHOICES, PURPOSE_CHOICES, STATUS_CHOICES, TIME
 
 class Student(models.Model):
     full_name = models.CharField(max_length=120)
-    registration_number = models.CharField(max_length=30, unique=True)
+    registration_number = models.CharField(max_length=30)
     department = models.CharField(max_length=20, choices=DEPARTMENT_CHOICES)
     year = models.CharField(max_length=10, choices=YEAR_CHOICES)
-    email = models.EmailField(unique=True)
+    email = models.EmailField()
     mobile_number = models.CharField(max_length=10)
     email_otp = models.CharField(max_length=6, blank=True)
     email_otp_sent_at = models.DateTimeField(null=True, blank=True)
